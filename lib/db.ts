@@ -51,6 +51,20 @@ export async function incrementLikes(id: number): Promise<void> {
   `;
 }
 
+export async function decrementLikes(id: number): Promise<void> {
+  const sql = getSql();
+  await sql`
+    UPDATE recommendations SET likes_count = GREATEST(likes_count - 1, 0) WHERE id = ${id}
+  `;
+}
+
+export async function deleteRecommendation(id: number, recommended_by: string): Promise<void> {
+  const sql = getSql();
+  await sql`
+    DELETE FROM recommendations WHERE id = ${id} AND recommended_by = ${recommended_by}
+  `;
+}
+
 export async function createTable(): Promise<void> {
   const sql = getSql();
   await sql`

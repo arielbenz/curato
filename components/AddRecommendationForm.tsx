@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { X, Link, Loader2, Sparkles } from "lucide-react";
 import { CATEGORIES } from "@/lib/constants";
 import type { Friend } from "@/lib/constants";
@@ -53,8 +53,7 @@ export default function AddRecommendationForm({
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
-      }}
-    >
+      }}>
       <div className="w-full sm:max-w-lg bg-zinc-900 border border-zinc-800 rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90dvh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 shrink-0">
@@ -64,8 +63,7 @@ export default function AddRecommendationForm({
           <button
             type="button"
             onClick={onClose}
-            className="text-zinc-500 hover:text-zinc-300 transition-colors"
-          >
+            className="text-zinc-500 hover:text-zinc-300 transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -74,8 +72,7 @@ export default function AddRecommendationForm({
         <form
           ref={formRef}
           action={handleSubmit}
-          className="flex flex-col gap-4 px-5 py-5 overflow-y-auto"
-        >
+          className="flex flex-col gap-4 px-5 py-5 overflow-y-auto">
           {/* URL */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs text-zinc-400 font-medium uppercase tracking-wider">
@@ -125,8 +122,12 @@ export default function AddRecommendationForm({
           <div className="flex flex-col gap-1.5">
             <label className="text-xs text-zinc-400 font-medium uppercase tracking-wider flex items-center gap-1.5">
               Título *
-              {isFetchingMeta && <Loader2 size={11} className="animate-spin text-zinc-500" />}
-              {!isFetchingMeta && title && <Sparkles size={11} className="text-zinc-500" />}
+              {isFetchingMeta && (
+                <Loader2 size={11} className="animate-spin text-zinc-500" />
+              )}
+              {!isFetchingMeta && title && (
+                <Sparkles size={11} className="text-zinc-500" />
+              )}
             </label>
             <input
               name="title"
@@ -163,8 +164,7 @@ export default function AddRecommendationForm({
             <select
               name="category"
               required
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-zinc-500 transition-colors"
-            >
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-zinc-500 transition-colors">
               {CATEGORIES.map((cat) => (
                 <option key={cat.value} value={cat.value}>
                   {cat.label}
@@ -187,8 +187,7 @@ export default function AddRecommendationForm({
           <button
             type="submit"
             disabled={isPending}
-            className="flex items-center justify-center gap-2 w-full bg-zinc-100 hover:bg-white text-zinc-900 font-semibold py-2.5 rounded-lg text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1"
-          >
+            className="flex items-center justify-center gap-2 w-full bg-zinc-100 hover:bg-white text-zinc-900 font-semibold py-2.5 rounded-lg text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1">
             {isPending ? (
               <>
                 <Loader2 size={15} className="animate-spin" />

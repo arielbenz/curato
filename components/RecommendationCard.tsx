@@ -1,14 +1,23 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Trash2 } from "lucide-react";
 import LikeButton from "@/components/LikeButton";
+import ConfirmModal from "@/components/ConfirmModal";
 import { type Recommendation } from "@/lib/db";
 import { CATEGORY_COLORS, FRIEND_COLORS, CATEGORIES } from "@/lib/constants";
+import { deleteAction } from "@/app/actions";
 
 interface RecommendationCardProps {
   rec: Recommendation;
+  priority?: boolean;
+  currentUser?: string | null;
 }
 
-export default function RecommendationCard({ rec }: RecommendationCardProps) {
+export default function RecommendationCard({ rec, priority = false, currentUser }: RecommendationCardProps) {
+  const [deleting, setDeleting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const catLabel =
     CATEGORIES.find((c) => c.value === rec.category)?.label ?? rec.category;
   const catColor = CATEGORY_COLORS[rec.category] ?? CATEGORY_COLORS["otro"];
@@ -21,19 +30,35 @@ export default function RecommendationCard({ rec }: RecommendationCardProps) {
   });
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col hover:border-zinc-700 transition-colors">
+    <>
+      {confirmOpen && (
+        <ConfirmModal
+          message="¿Eliminás esta recomendación?"
+          confirmLabel="Eliminar"
+          cancelLabel="Cancelar"
+          danger
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={async () => {
+            setConfirmOpen(false);
+            setDeleting(true);
+            await deleteAction(rec.id, rec.recommended_by);
+          }}
+        />
+      )}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col hover:border-zinc-700 transition-colors">
       {/* Thumbnail */}
       <a
         href={rec.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="block relative w-full aspect-video bg-zinc-800 overflow-hidden"
-      >
+        className="block relative w-full aspect-video bg-zinc-800 overflow-hidden">
         {rec.thumbnail_url ? (
           <Image
             src={rec.thumbnail_url}
             alt={rec.title}
             fill
+            loading={priority ? "eager" : "lazy"}
+            priority={priority}
             className="object-cover hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
@@ -48,8 +73,7 @@ export default function RecommendationCard({ rec }: RecommendationCardProps) {
       <div className="flex flex-col gap-5 p-7 flex-1">
         {/* Category badge */}
         <span
-          className={`self-start px-2 py-0.5 rounded-full text-xs border font-medium ${catColor}`}
-        >
+          className={`self-start px-2 py-0.5 rounded-full text-xs border font-medium ${catColor}`}>
           {catLabel}
         </span>
 
@@ -58,8 +82,7 @@ export default function RecommendationCard({ rec }: RecommendationCardProps) {
           href={rec.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex items-start gap-1 text-zinc-100 font-semibold text-xl leading-snug hover:text-white"
-        >
+          className="group flex items-start gap-1 text-zinc-100 font-semibold text-xl leading-snug hover:text-white">
           <span>{rec.title}</span>
           <ExternalLink
             size={13}
@@ -82,9 +105,22 @@ export default function RecommendationCard({ rec }: RecommendationCardProps) {
             </span>
             <span className="text-xs text-zinc-600">{date}</span>
           </div>
-          <LikeButton id={rec.id} likesCount={rec.likes_count} />
+          <div className="flex items-center gap-3">
+            {currentUser === rec.recommended_by && (
+              <button
+                onClick={() => setConfirmOpen(true)}
+                disabled={deleting}
+                className="text-zinc-600 hover:text-rose-400 transition-colors disabled:opacity-40"
+                aria-label="Eliminar recomendación"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+            <LikeButton id={rec.id} likesCount={rec.likes_count} />
+          </div>
         </div>
       </div>
     </div>
+    </>
   );
 }

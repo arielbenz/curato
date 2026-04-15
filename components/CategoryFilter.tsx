@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { CATEGORIES } from "@/lib/constants";
 
 interface CategoryFilterProps {
@@ -20,8 +19,7 @@ export default function CategoryFilter({
           selected === "all"
             ? "bg-zinc-300 text-zinc-900 border-zinc-300"
             : "bg-transparent text-zinc-400 border-zinc-700 hover:border-zinc-500"
-        }`}
-      >
+        }`}>
         Todos
       </button>
       {CATEGORIES.map((cat) => (
@@ -32,8 +30,7 @@ export default function CategoryFilter({
             selected === cat.value
               ? "bg-zinc-300 text-zinc-900 border-zinc-300"
               : "bg-transparent text-zinc-400 border-zinc-700 hover:border-zinc-500"
-          }`}
-        >
+          }`}>
           {cat.label}
         </button>
       ))}

@@ -1,12 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addRecommendation, incrementLikes } from "@/lib/db";
+import { addRecommendation, incrementLikes, decrementLikes, deleteRecommendation } from "@/lib/db";
 import { getThumbnail } from "@/lib/thumbnails";
 import { FRIENDS, CATEGORIES } from "@/lib/constants";
 
 export async function addRecommendationAction(
-  formData: FormData
+  formData: FormData,
 ): Promise<{ error?: string }> {
   const title = (formData.get("title") as string)?.trim();
   const url = (formData.get("url") as string)?.trim();
@@ -52,8 +52,24 @@ export async function likeAction(id: number): Promise<void> {
   revalidatePath("/");
 }
 
+export async function unlikeAction(id: number): Promise<void> {
+  await decrementLikes(id);
+  revalidatePath("/");
+}
+
+export async function deleteAction(
+  id: number,
+  recommended_by: string,
+): Promise<{ error?: string }> {
+  if (!FRIENDS.includes(recommended_by as (typeof FRIENDS)[number]))
+    return { error: "Nombre inválido." };
+  await deleteRecommendation(id, recommended_by);
+  revalidatePath("/");
+  return {};
+}
+
 export async function fetchUrlMetadata(
-  url: string
+  url: string,
 ): Promise<{ title: string | null; description: string | null }> {
   try {
     new URL(url);
@@ -70,16 +86,28 @@ export async function fetchUrlMetadata(
     const html = await res.text();
 
     const ogTitle =
-      html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
-      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i)?.[1];
+      html.match(
+        /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i,
+      )?.[1] ||
+      html.match(
+        /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i,
+      )?.[1];
 
     const tagTitle = html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1];
 
     const ogDesc =
-      html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
-      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i)?.[1] ||
-      html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)?.[1] ||
-      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)?.[1];
+      html.match(
+        /<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i,
+      )?.[1] ||
+      html.match(
+        /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i,
+      )?.[1] ||
+      html.match(
+        /<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i,
+      )?.[1] ||
+      html.match(
+        /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i,
+      )?.[1];
 
     const title = (ogTitle || tagTitle)?.trim().slice(0, 200) ?? null;
     const description = ogDesc?.trim().slice(0, 500) ?? null;

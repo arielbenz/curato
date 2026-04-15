@@ -8,13 +8,12 @@ export function getYouTubeId(url: string): string | null {
       const v = parsed.searchParams.get("v");
       if (v) return v;
       // /shorts/ID or /embed/ID
-      const match = parsed.pathname.match(/\/(shorts|embed|v)\/([a-zA-Z0-9_-]{11})/);
+      const match = parsed.pathname.match(
+        /\/(shorts|embed|v)\/([a-zA-Z0-9_-]{11})/,
+      );
       if (match) return match[2];
     }
-    if (
-      parsed.hostname === "youtu.be" ||
-      parsed.hostname === "www.youtu.be"
-    ) {
+    if (parsed.hostname === "youtu.be" || parsed.hostname === "www.youtu.be") {
       const id = parsed.pathname.slice(1).split("?")[0];
       if (id.length === 11) return id;
     }
@@ -40,8 +39,12 @@ export async function getThumbnail(url: string): Promise<string | null> {
     if (!res.ok) return null;
     const html = await res.text();
     const match =
-      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
-      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+      html.match(
+        /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
+      ) ||
+      html.match(
+        /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
+      );
     if (match?.[1]) return match[1];
   } catch {
     // network error or timeout → no thumbnail
