@@ -16,7 +16,7 @@ export default function CategoryFilter({
   total = 0,
 }: CategoryFilterProps) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none sm:flex-wrap">
       <button
         onClick={() => onChange("all")}
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border transition-colors text-left ${
@@ -25,7 +25,8 @@ export default function CategoryFilter({
             : "bg-transparent text-zinc-400 border-zinc-700 hover:border-zinc-500"
         }`}>
         Todos
-        <span className={`text-xs font-medium tabular-nums ${selected === "all" ? "text-zinc-600" : "text-zinc-600"}`}>
+        <span
+          className={`text-xs font-medium tabular-nums ${selected === "all" ? "text-zinc-600" : "text-zinc-600"}`}>
           {total}
         </span>
       </button>

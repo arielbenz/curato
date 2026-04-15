@@ -1,7 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { addRecommendation, incrementLikes, decrementLikes, deleteRecommendation } from "@/lib/db";
+import {
+  addRecommendation,
+  incrementLikes,
+  decrementLikes,
+  deleteRecommendation,
+} from "@/lib/db";
 import { getThumbnail } from "@/lib/thumbnails";
 import { FRIENDS, CATEGORIES } from "@/lib/constants";
 
