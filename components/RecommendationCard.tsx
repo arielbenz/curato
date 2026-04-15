@@ -13,9 +13,11 @@ interface RecommendationCardProps {
   rec: Recommendation;
   priority?: boolean;
   currentUser?: string | null;
+  listMode?: boolean;
+  onDeleted?: () => void;
 }
 
-export default function RecommendationCard({ rec, priority = false, currentUser }: RecommendationCardProps) {
+export default function RecommendationCard({ rec, priority = false, currentUser, listMode = false, onDeleted }: RecommendationCardProps) {
   const [deleting, setDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const catLabel =
@@ -42,16 +44,17 @@ export default function RecommendationCard({ rec, priority = false, currentUser 
             setConfirmOpen(false);
             setDeleting(true);
             await deleteAction(rec.id, rec.recommended_by);
+            onDeleted?.();
           }}
         />
       )}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col hover:border-zinc-700 transition-colors">
+      <div className={`bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-700 transition-colors ${listMode ? "flex flex-row gap-0" : "flex flex-col"}`}>
       {/* Thumbnail */}
       <a
         href={rec.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="block relative w-full aspect-video bg-zinc-800 overflow-hidden">
+        className={`block relative bg-zinc-800 overflow-hidden shrink-0 ${listMode ? "w-40 h-full aspect-video" : "w-full aspect-video"}`}>
         {rec.thumbnail_url ? (
           <Image
             src={rec.thumbnail_url}
@@ -70,7 +73,7 @@ export default function RecommendationCard({ rec, priority = false, currentUser 
       </a>
 
       {/* Content */}
-      <div className="flex flex-col gap-5 p-7 flex-1">
+      <div className={`flex flex-col flex-1 ${listMode ? "gap-2 p-4" : "gap-5 p-7"}`}>
         {/* Category badge */}
         <span
           className={`self-start px-2 py-0.5 rounded-full text-xs border font-medium ${catColor}`}>
@@ -82,7 +85,7 @@ export default function RecommendationCard({ rec, priority = false, currentUser 
           href={rec.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex items-start gap-1 text-zinc-100 font-semibold text-xl leading-snug hover:text-white">
+          className={`group flex items-start gap-1 text-zinc-100 font-semibold leading-snug hover:text-white ${listMode ? "text-base" : "text-xl"}`}>
           <span>{rec.title}</span>
           <ExternalLink
             size={13}
@@ -91,7 +94,7 @@ export default function RecommendationCard({ rec, priority = false, currentUser 
         </a>
 
         {/* Description */}
-        {rec.description && (
+        {rec.description && !listMode && (
           <p className="text-base text-zinc-400 leading-relaxed line-clamp-5">
             {rec.description}
           </p>

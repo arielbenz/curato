@@ -10,11 +10,13 @@ import { getYouTubeId } from "@/lib/thumbnails";
 interface AddRecommendationFormProps {
   onClose: () => void;
   currentUser: Friend;
+  onAdded?: () => void;
 }
 
 export default function AddRecommendationForm({
   onClose,
   currentUser,
+  onAdded,
 }: AddRecommendationFormProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +47,7 @@ export default function AddRecommendationForm({
         return;
       }
       onClose();
+      onAdded?.();
     });
   }
 
