@@ -4,7 +4,7 @@ import { useState, useTransition, useRef, useEffect } from "react";
 import { X, Link, Loader2, Sparkles } from "lucide-react";
 import { CATEGORIES } from "@/lib/constants";
 import type { Friend } from "@/lib/constants";
-import { addRecommendationAction, fetchUrlMetadata } from "@/app/actions";
+import { addRecommendationAction, fetchUrlMetadata, fetchThumbnailPreview } from "@/app/actions";
 import { getYouTubeId } from "@/lib/thumbnails";
 
 interface AddRecommendationFormProps {
@@ -21,6 +21,7 @@ export default function AddRecommendationForm({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [previewThumb, setPreviewThumb] = useState<string | null>(null);
+  const [isFetchingThumb, setIsFetchingThumb] = useState(false);
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -28,14 +29,43 @@ export default function AddRecommendationForm({
 
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Fast thumbnail preview for YouTube (client-side, no fetch needed)
+  // Thumbnail preview (YouTube fast path client-side, others via server)
   useEffect(() => {
+    if (!url.trim()) {
+      setPreviewThumb(null);
+      return;
+    }
+
+    // YouTube fast path (client-side)
     const ytId = getYouTubeId(url);
     if (ytId) {
       setPreviewThumb(`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`);
-    } else {
-      setPreviewThumb(null);
+      return;
     }
+
+    // For other platforms (Spotify, etc), fetch from server
+    let cancelled = false;
+    const fetchThumb = async () => {
+      setIsFetchingThumb(true);
+      try {
+        const thumb = await fetchThumbnailPreview(url);
+        if (!cancelled && thumb) {
+          setPreviewThumb(thumb);
+        } else if (!cancelled) {
+          setPreviewThumb(null);
+        }
+      } catch {
+        if (!cancelled) setPreviewThumb(null);
+      } finally {
+        if (!cancelled) setIsFetchingThumb(false);
+      }
+    };
+
+    const timer = setTimeout(fetchThumb, 800); // Debounce
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [url]);
 
   function handleSubmit(formData: FormData) {
@@ -53,20 +83,20 @@ export default function AddRecommendationForm({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center p-0 pt-20 sm:p-4 sm:pt-20 bg-black/80 backdrop-blur-md overflow-y-auto animate-scale-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}>
-      <div className="w-full sm:max-w-lg bg-zinc-900 border border-zinc-800 rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90dvh] flex flex-col">
+      <div className="w-full sm:max-w-lg glass-modal border border-zinc-700/50 rounded-2xl shadow-2xl max-h-[calc(100dvh-6rem)] flex flex-col animate-fade-in-up">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 shrink-0">
-          <h2 className="text-zinc-100 font-semibold text-base">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-700/50 shrink-0">
+          <h2 className="text-zinc-100 font-bold text-lg tracking-tight">
             Agregar recomendación
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-zinc-500 hover:text-zinc-300 transition-colors">
+            className="text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 p-1.5 rounded-lg transition-all">
             <X size={20} />
           </button>
         </div>
@@ -105,18 +135,26 @@ export default function AddRecommendationForm({
                     setIsFetchingMeta(false);
                   }
                 }}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors"
+                className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-orange-500/50 focus:bg-zinc-800 transition-all"
               />
             </div>
             {/* Thumbnail preview */}
-            {previewThumb && (
-              <div className="mt-1 rounded-lg overflow-hidden border border-zinc-700 aspect-video relative bg-zinc-800">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={previewThumb}
-                  alt="preview"
-                  className="w-full h-full object-cover"
-                />
+            {(previewThumb || isFetchingThumb) && (
+              <div className="mt-1 rounded-lg overflow-hidden border border-zinc-700/50 aspect-video relative bg-zinc-800/50 backdrop-blur-sm shadow-lg">
+                {isFetchingThumb ? (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Loader2 size={24} className="animate-spin text-orange-400" />
+                  </div>
+                ) : (
+                  previewThumb && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={previewThumb}
+                      alt="preview"
+                      className="w-full h-full object-cover"
+                    />
+                  )
+                )}
               </div>
             )}
           </div>
@@ -139,7 +177,7 @@ export default function AddRecommendationForm({
               placeholder="Nombre del video / documental / película"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors"
+              className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-orange-500/50 focus:bg-zinc-800 transition-all"
             />
           </div>
 
@@ -155,7 +193,7 @@ export default function AddRecommendationForm({
               placeholder="¿Por qué lo recomendás?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors resize-none"
+              className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-orange-500/50 focus:bg-zinc-800 transition-all resize-none"
             />
           </div>
 
@@ -167,7 +205,7 @@ export default function AddRecommendationForm({
             <select
               name="category"
               required
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-zinc-500 transition-colors">
+              className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-zinc-100 focus:outline-none focus:border-orange-500/50 focus:bg-zinc-800 transition-all">
               {CATEGORIES.map((cat) => (
                 <option key={cat.value} value={cat.value}>
                   {cat.label}
@@ -190,7 +228,7 @@ export default function AddRecommendationForm({
           <button
             type="submit"
             disabled={isPending}
-            className="flex items-center justify-center gap-2 w-full bg-zinc-100 hover:bg-white text-zinc-900 font-semibold py-2.5 rounded-lg text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-1">
+            className="ripple flex items-center justify-center gap-2 w-full bg-linear-to-r from-orange-500 to-pink-600 hover:from-orange-400 hover:to-pink-500 text-white font-bold py-3 rounded-lg text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed mt-1 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]">
             {isPending ? (
               <>
                 <Loader2 size={15} className="animate-spin" />

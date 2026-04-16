@@ -122,3 +122,59 @@ export async function fetchUrlMetadata(
     return { title: null, description: null };
   }
 }
+
+export async function fetchThumbnailPreview(url: string): Promise<string | null> {
+  try {
+    const { getThumbnail } = await import("@/lib/thumbnails");
+    return await getThumbnail(url);
+  } catch {
+    return null;
+  }
+}
+
+export async function addReactionAction(
+  recommendationId: number,
+  userName: string,
+  reactionType: import("@/lib/db").ReactionType
+): Promise<void> {
+  if (!FRIENDS.includes(userName as (typeof FRIENDS)[number])) return;
+  const { addReaction } = await import("@/lib/db");
+  await addReaction(recommendationId, userName, reactionType);
+  revalidatePath("/");
+}
+
+export async function removeReactionAction(
+  recommendationId: number,
+  userName: string
+): Promise<void> {
+  if (!FRIENDS.includes(userName as (typeof FRIENDS)[number])) return;
+  const { removeReaction } = await import("@/lib/db");
+  await removeReaction(recommendationId, userName);
+  revalidatePath("/");
+}
+
+export async function addCommentAction(
+  recommendationId: number,
+  userName: string,
+  text: string
+): Promise<{ error?: string }> {
+  if (!FRIENDS.includes(userName as (typeof FRIENDS)[number]))
+    return { error: "Usuario inválido" };
+  if (!text.trim()) return { error: "El comentario no puede estar vacío" };
+  if (text.length > 500) return { error: "Máximo 500 caracteres" };
+  
+  const { addComment } = await import("@/lib/db");
+  await addComment(recommendationId, userName, text.trim());
+  revalidatePath("/");
+  return {};
+}
+
+export async function toggleWatchedAction(
+  recommendationId: number,
+  userName: string
+): Promise<void> {
+  if (!FRIENDS.includes(userName as (typeof FRIENDS)[number])) return;
+  const { toggleWatched } = await import("@/lib/db");
+  await toggleWatched(recommendationId, userName);
+  revalidatePath("/");
+}

@@ -23,11 +23,41 @@ export function getYouTubeId(url: string): string | null {
   return null;
 }
 
+function isSpotifyUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname.includes("spotify.com");
+  } catch {
+    return false;
+  }
+}
+
+async function getSpotifyThumbnail(url: string): Promise<string | null> {
+  try {
+    // Spotify oEmbed API
+    const oembedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`;
+    const res = await fetch(oembedUrl, {
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.thumbnail_url || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function getThumbnail(url: string): Promise<string | null> {
   // YouTube fast path
   const ytId = getYouTubeId(url);
   if (ytId) {
     return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+  }
+
+  // Spotify fast path
+  if (isSpotifyUrl(url)) {
+    const spotifyThumb = await getSpotifyThumbnail(url);
+    if (spotifyThumb) return spotifyThumb;
   }
 
   // Generic: try to fetch og:image from the page

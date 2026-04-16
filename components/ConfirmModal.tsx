@@ -19,24 +19,24 @@ export default function ConfirmModal({
 }: ConfirmModalProps) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-scale-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel();
       }}>
-      <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-6 flex flex-col gap-5">
-        <p className="text-zinc-100 text-base text-center">{message}</p>
+      <div className="w-full max-w-sm glass-modal border border-zinc-700/50 rounded-2xl shadow-2xl p-6 flex flex-col gap-5 animate-fade-in-up">
+        <p className="text-zinc-100 text-base text-center font-medium">{message}</p>
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium transition-colors">
+            className="flex-1 py-2.5 rounded-xl border border-zinc-700/50 bg-zinc-800/50 hover:bg-zinc-700 text-zinc-300 text-sm font-semibold transition-all hover:scale-105 active:scale-95">
             {cancelLabel}
           </button>
           <button
             onClick={onConfirm}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+            className={`ripple flex-1 py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-lg ${
               danger
-                ? "bg-rose-500 hover:bg-rose-400 text-white"
-                : "bg-zinc-100 hover:bg-white text-zinc-900"
+                ? "bg-linear-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white"
+                : "bg-linear-to-r from-orange-500 to-pink-600 hover:from-orange-400 hover:to-pink-500 text-white"
             }`}>
             {confirmLabel}
           </button>

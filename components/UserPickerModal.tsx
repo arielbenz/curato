@@ -18,11 +18,11 @@ export default function UserPickerModal({ onSelect }: UserPickerModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-8 flex flex-col gap-6">
-        <div className="flex flex-col gap-1 text-center">
-          <h2 className="text-zinc-100 font-bold text-xl">¿Quién sos?</h2>
-          <p className="text-zinc-500 text-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-lg animate-scale-in">
+      <div className="w-full max-w-sm glass-modal border border-zinc-700/50 rounded-2xl shadow-2xl p-8 flex flex-col gap-6 animate-fade-in-up">
+        <div className="flex flex-col gap-2 text-center">
+          <h2 className="text-zinc-100 font-black text-2xl tracking-tight" style={{ letterSpacing: '-0.02em' }}>¿Quién sos?</h2>
+          <p className="text-zinc-500 text-sm font-medium">
             Elegí tu nombre para continuar
           </p>
         </div>
@@ -34,7 +34,7 @@ export default function UserPickerModal({ onSelect }: UserPickerModalProps) {
               <button
                 key={name}
                 onClick={() => handleSelect(name)}
-                className={`w-full py-3 rounded-xl border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 hover:border-zinc-600 transition-colors font-semibold text-base ${color}`}>
+                className={`ripple w-full py-3.5 rounded-xl border border-zinc-700/50 bg-zinc-800/50 hover:bg-zinc-700 hover:border-zinc-600 hover:scale-105 active:scale-95 transition-all font-bold text-lg shadow-lg hover:shadow-xl ${color}`}>
                 {name}
               </button>
             );

@@ -16,17 +16,17 @@ export default function CategoryFilter({
   total = 0,
 }: CategoryFilterProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none sm:flex-wrap">
+    <div className="flex flex-wrap gap-2">
       <button
         onClick={() => onChange("all")}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border transition-colors text-left ${
+        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border font-semibold transition-all duration-200 text-left ${
           selected === "all"
-            ? "bg-zinc-300 text-zinc-900 border-zinc-300"
-            : "bg-transparent text-zinc-400 border-zinc-700 hover:border-zinc-500"
+            ? "bg-linear-to-r from-orange-500 to-pink-600 text-white border-transparent shadow-lg scale-105"
+            : "bg-zinc-900/50 text-zinc-400 border-zinc-700/50 hover:border-zinc-600 hover:text-zinc-300 hover:bg-zinc-800/50 hover:scale-105"
         }`}>
         Todos
         <span
-          className={`text-xs font-medium tabular-nums ${selected === "all" ? "text-zinc-600" : "text-zinc-600"}`}>
+          className={`text-xs font-bold tabular-nums px-1.5 py-0.5 rounded-md ${selected === "all" ? "bg-white/20" : "bg-zinc-800"}`}>
           {total}
         </span>
       </button>
@@ -34,13 +34,13 @@ export default function CategoryFilter({
         <button
           key={cat.value}
           onClick={() => onChange(cat.value)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border transition-colors text-left ${
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border font-semibold transition-all duration-200 text-left ${
             selected === cat.value
-              ? "bg-zinc-300 text-zinc-900 border-zinc-300"
-              : "bg-transparent text-zinc-400 border-zinc-700 hover:border-zinc-500"
+              ? "bg-linear-to-r from-orange-500 to-pink-600 text-white border-transparent shadow-lg scale-105"
+              : "bg-zinc-900/50 text-zinc-400 border-zinc-700/50 hover:border-zinc-600 hover:text-zinc-300 hover:bg-zinc-800/50 hover:scale-105"
           }`}>
           {cat.label}
-          <span className="text-xs font-medium tabular-nums text-zinc-600">
+          <span className={`text-xs font-bold tabular-nums px-1.5 py-0.5 rounded-md ${selected === cat.value ? "bg-white/20" : "bg-zinc-800"}`}>
             {counts[cat.value] ?? 0}
           </span>
         </button>
